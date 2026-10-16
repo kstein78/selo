@@ -1,0 +1,20 @@
+{{/* Usage: partial "photo.html" (dict "key" "beli-majdan-06" "class" "hero" "caption" "optional" "eager" true) */}}
+{{ $p := index site.Data.photos .key }}
+{{ $src := "" }}{{ with $p }}{{ $src = .src }}{{ if not (hasPrefix $src "http") }}{{ $src = $src | relURL }}{{ end }}{{ end }}
+{{ $alt := "" }}{{ with $p }}{{ $alt = index . (printf "alt_%s" site.Language.Lang) | default .alt }}{{ end }}
+{{ if $p }}
+<figure class="photo {{ .class }}">
+  <div class="photo-frame">
+    {{ if site.Params.offlinePreview }}<div class="offline-img" role="img" aria-label="{{ $alt }}"><span>{{ $alt }}</span></div>{{ else }}<img src="{{ $src }}" alt="{{ $alt }}"{{ with $p.position }} style="object-position: {{ . | safeCSS }}"{{ end }} {{ if not .eager }}loading="lazy"{{ end }} decoding="async">{{ end }}
+    {{ if and $p.temp site.Params.showPhotoBadges }}<span class="temp-badge" data-nosnippet title="{{ i18n "temp_tip" }}">{{ i18n "photo_temp" }}</span>{{ end }}
+  </div>
+  <figcaption>
+    {{ with .caption }}<span class="cap">{{ . | markdownify }}</span>{{ end }}
+    <span class="credit" data-pagefind-ignore>{{ i18n "photo_by" }}: {{ with $p.page }}<a href="{{ . }}" rel="noopener">{{ (index $p (printf "author_%s" site.Language.Lang) | default $p.author) }}</a>{{ else }}{{ (index $p (printf "author_%s" site.Language.Lang) | default $p.author) }}{{ end }}, {{ $p.license }}</span>
+  </figcaption>
+</figure>
+{{ else }}
+<figure class="photo photo-missing {{ .class }}">
+  <div class="photo-frame" data-key="{{ .key }}"><span>{{ i18n "photo_soon" }}</span></div>
+</figure>
+{{ end }}

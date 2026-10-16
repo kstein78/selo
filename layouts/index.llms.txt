@@ -1,0 +1,14 @@
+{{- /* Rendered for every language but written to the same root file, so it lists all languages itself.
+  The intro comes from site.Params.llmsIntro (Markdown, in English). */ -}}
+# {{ i18n "brand_name" }} ({{ site.Title }})
+
+{{ with site.Params.llmsIntro }}{{ . }}{{ end }}
+
+Contact: {{ site.Params.contactEmail }}{{ with site.Params.photoCredit }} · Photos: {{ . }}{{ end }}
+{{ range site.Sites }}
+## {{ .Language.LanguageName }} ({{ .Language.Lang }})
+
+- [{{ .Home.Title }}]({{ .Home.Permalink }}): {{ .Language.Params.description }}
+{{ range where .RegularPages "Section" "ne" "" }}{{ if not (in (slice "fonts") .Section) }}- [{{ .Title }}]({{ .Permalink }}){{ with .Params.summary | default .Params.lead }}: {{ . | plainify | truncate 140 "…" }}{{ end }}
+{{ end }}{{ end }}{{ range .Sections }}- [{{ .Title }}]({{ .Permalink }})
+{{ end }}{{ end }}

@@ -1,0 +1,174 @@
+# Croatian UI strings (standard Croatian, ijekavian). Keys missing here fall back to the default language of the site.
+nav_nature: Priroda
+nav_routes: Pješačke staze
+nav_monastery: Samostan
+nav_history: Povijest
+nav_stay: Smještaj
+nav_eat: Hrana i vino
+nav_products: Domaći proizvodi
+nav_shops: Trgovine i usluge
+nav_business: Lokalno gospodarstvo
+nav_people: Ljudi
+nav_kids: Za djecu
+nav_useful: Korisne informacije
+nav_map: Karta
+nav_support: Za lokalne tvrtke
+nav_about: O stranici
+menu: Izbornik
+skip: Preskoči na sadržaj
+unofficial_note: Neovisna, neslužbena lokalna stranica.
+get_directions: Upute do mjesta
+open_gmaps: Otvori u Google kartama
+on_site_map: Prikaži na karti stranice
+address: Adresa
+phone: Telefon
+website: Mrežna stranica
+coordinates: Koordinate
+altitude: Nadmorska visina
+distance: Udaljenost
+walking_time: Vrijeme hoda
+difficulty: Težina
+parking: Parkiralište
+how_to_get: Kako doći
+video: Video
+video_soon: Video uskoro
+video_consent: Video se reproducira s YouTubea. Klikom učitavate sadržaj s YouTubea (Google).
+play_video: Pokreni video
+photo_temp: PRIVREMENA FOTO
+read_more: Više
+unconfirmed: Podatke vlasnik još nije potvrdio
+partner: Podupire stranicu
+language: Jezik
+nearby: U blizini
+kids_friendly: Prikladno za djecu
+cat_nature: Priroda
+cat_heritage: Baština
+cat_stay: Smještaj
+cat_food: Hrana i vino
+cat_products: Domaći proizvodi
+cat_shops: Trgovine
+cat_business: Lokalno gospodarstvo
+cat_services: Usluge
+cat_kids: Djeca
+photo_credits: Autori fotografija
+sources: Izvori
+emergency: Hitni slučajevi
+see_all: Sve
+explore: Istražite
+m_asl: m nadmorske visine
+hours_note: 'Radno vrijeme se mijenja: provjerite prije polaska.'
+todo: Napomena urednika
+map_hint: Kliknite na oznaku da vidite što je ondje.
+coming_soon: Uskoro
+contact: Kontakt
+photo_by: Foto
+em_legend: 112 hitne službe · 192 policija · 193 vatrogasci · 194 hitna pomoć (u Srbiji)
+more_in: "Još iz rubrike"
+author: "Autor"
+license: "Licencija"
+status: "Status"
+license_line: "Tekstovi <a href=\"https://creativecommons.org/licenses/by/4.0/\" rel=\"license noopener\">CC BY 4.0</a> · fotografije i video: sva prava pridržana"
+aria_main: "Glavni izbornik"
+aria_gallery: "Galerija"
+aria_facts: "Podaci"
+aria_breadcrumb: "Putanja"
+aria_sections: "Rubrike"
+aria_more: "Više"
+level_easy: "lako"
+level_moderate: "srednje"
+level_hard: "teško"
+nf_title: "Ova staza ne vodi nikamo"
+nf_text: "Stranica koju tražite ne postoji ili je premještena."
+temp_tip: "Posuđena fotografija s otvorenom licencijom, zamijenit ćemo je svojom"
+contact_langs: "Srpski · hrvatski · ruski · engleski"
+nav_author: "O autorici"
+nav_nearby: "Okolica"
+cat_nearby: "Okolica"
+map_show: "Prikaži kartu"
+map_source: "Cijeli list i izvor"
+nav_gallery: "Fotografije"
+gal_slideshow: "Prezentacija"
+gal_play: "Pokreni prezentaciju"
+gal_pause: "Zaustavi prezentaciju"
+gal_prev: "Prethodna fotografija"
+gal_next: "Sljedeća fotografija"
+gal_fullscreen: "Preko cijelog zaslona"
+gal_close: "Zatvori"
+gal_all: "Sve fotografije"
+gal_all_seasons: "Sva godišnja doba"
+gal_theme: "Tema"
+gal_season: "Godišnje doba"
+gal_season_spring: "Proljeće"
+gal_season_summer: "Ljeto"
+gal_season_autumn: "Jesen"
+gal_season_winter: "Zima"
+nav_g_explore: "Istraži"
+nav_g_do: "Šetnje i aktivnosti"
+nav_g_stay: "Smještaj i hrana"
+nav_g_info: "Korisno"
+nav_g_site: "O stranici"
+nav_overview: "Pregled"
+consent_title: "Smijemo li izbrojiti vaš posjet?"
+consent_text: "Uz vaše dopuštenje brojimo posjete pomoću Google Analyticsa i Yandex Metrice da vidimo koje su stranice korisne. Oni postavljaju kolačiće i primaju podatke o korištenju. Bez oglasa i bez prodaje podataka."
+consent_more: "Više o privatnosti"
+consent_yes: "Dopusti"
+consent_no: "Ne, hvala"
+consent_settings: "Postavke kolačića"
+weather_title: "Vremenska prognoza"
+weather_consent: "Prognoza se učitava s Windy.com. Klikom učitavate sadržaj s Windy.com."
+weather_open: "Otvori prognozu na windy.com"
+wx_wind: "vjetar"
+wx_kmh: "km/h"
+wx_source: "Open-Meteo"
+wx_clear: "vedro"
+wx_mostly_clear: "pretežno vedro"
+wx_partly: "djelomično oblačno"
+wx_overcast: "oblačno"
+wx_fog: "magla"
+wx_drizzle: "rosulja"
+wx_rain: "kiša"
+wx_freezing: "ledena kiša"
+wx_snow: "snijeg"
+wx_showers: "pljuskovi"
+wx_snow_showers: "snježni pljuskovi"
+wx_thunder: "grmljavina"
+weather_now_note: "Trenutačno vrijeme u zaglavlju dolazi s Open-Meteo.com (CC BY 4.0) preko našeg poslužitelja, tako da vaš preglednik ne kontaktira Open-Meteo."
+opening_hours: "Radno vrijeme"
+closed: "ne radi"
+wd_mo: "pon"
+wd_tu: "uto"
+wd_we: "sri"
+wd_th: "čet"
+wd_fr: "pet"
+wd_sa: "sub"
+wd_su: "ned"
+hours_posted: "prema obavijesti na ulazu"
+video_by: "Video"
+news_latest: "Najnovije vijesti"
+news_all: "Sve"
+news_all_link: "Sve vijesti →"
+news_feed_local: "Vijesti iz okolice"
+news_feed_site: "Novo na stranici"
+news_related: "Na stranici u vezi s tim"
+news_filter: "Koje vijesti prikazati"
+search: "Pretraživanje"
+search_btn: "Traži"
+search_ph: "Što tražite?"
+search_none: "Nema rezultata za"
+search_found: "Pronađeno"
+share_title: "Podijeli"
+share_copy: "Kopiraj poveznicu"
+share_copied: "Poveznica je kopirana"
+share_insta: "Poveznica je kopirana. Instagram ne prima poveznice sa stranica izravno: zalijepite je u priču (naljepnica „Poveznica”) ili u izravnu poruku."
+share_more: "Još…"
+gallery_albums: "Albumi"
+gallery_photos: "fotografija"
+sp_deadly: "smrtonosno otrovno"
+sp_poison: "otrovno"
+sp_caution: "oprez"
+sp_protected: "zaštićena vrsta"
+sp_rare: "rijetka vrsta"
+byline_text: "Tekst"
+byline_updated: "ažurirano"
+photo_soon: "Fotografija uskoro"
+sister_title: "Srodne stranice"

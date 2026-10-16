@@ -1,0 +1,17 @@
+{{/* Sister sites of the network (data/sister.yaml): their emblem, name and one line in the page's language.
+  Usage: partial "sister.html" . (home page, after the news) or the shortcode {{< sister >}} in a page. */}}
+{{ $lang := site.Language.Lang }}
+{{ with site.Data.sister }}{{ with .sites }}
+<section class="wrap sister" data-pagefind-ignore>
+  <h2 class="listing-title">{{ i18n "sister_title" }}</h2>
+  <div class="sister-grid">
+    {{ range . }}
+    {{ $url := .url }}{{ with index . (printf "path_%s" $lang) }}{{ $url = printf "%s%s" $url . }}{{ end }}
+    <a class="sister-card" href="{{ $url }}" rel="noopener">
+      {{ with .emblem }}<img src="{{ . | relURL }}" alt="" width="44" height="57" loading="lazy">{{ end }}
+      <span><b>{{ .name }}</b><span>{{ index . (printf "text_%s" $lang) | default .text_en }}</span></span>
+    </a>
+    {{ end }}
+  </div>
+</section>
+{{ end }}{{ end }}

@@ -1,0 +1,39 @@
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div>
+      <p class="footer-brand"><img class="brand-shield" src="{{ "img/brand-shield-mono.svg" | relURL }}" alt="" width="43" height="56">{{ i18n "brand_name" }}</p>
+      <p>{{ i18n "unofficial_note" }}</p>
+      <p class="muted small">{{ i18n "footer_region" }}</p>
+      {{ with site.GetPage "fonts" }}<p class="small"><a href="{{ .RelPermalink }}">{{ i18n "fonts_footer" }} →</a> · {{ with site.Params.fontsZip }}<a href="{{ . | relURL }}" download>ZIP</a>{{ end }}</p>{{ end }}
+    </div>
+    <nav class="footer-nav" aria-label="{{ i18n "aria_sections" }}">
+      {{ range site.Data.nav.menu | append site.Data.nav.more }}
+      {{ $g := . }}
+      <div>
+        <p class="label">{{ $hub := "" }}{{ with .hub }}{{ $hub = site.GetPage . }}{{ end }}{{ with $hub }}<a href="{{ .RelPermalink }}">{{ i18n $g.label }}</a>{{ else }}{{ i18n .label }}{{ end }}</p>
+        <ul class="footer-links">
+          {{ range .items }}{{ $it := . }}{{ with site.GetPage .path }}<li><a href="{{ .RelPermalink }}{{ with $it.anchor }}#{{ . }}{{ end }}">{{ with $it.label }}{{ i18n . }}{{ else }}{{ .LinkTitle }}{{ end }}</a></li>{{ end }}{{ end }}
+        </ul>
+      </div>
+      {{ end }}
+    </nav>
+    <div class="footer-contact">
+      <p class="label">{{ i18n "contact" }}</p>
+      {{ with site.Params.contactEmail }}<p><a href="mailto:{{ . }}">{{ . }}</a></p>{{ end }}
+      {{ with site.Params.contactPhone }}<p class="num"><a href="tel:{{ . }}">{{ site.Params.contactPhoneDisplay | default . }}</a><br>
+        <span class="small"><a href="https://wa.me/{{ strings.TrimPrefix "+" . }}" rel="noopener">WhatsApp</a> · <a href="viber://chat?number=%2B{{ strings.TrimPrefix "+" . }}">Viber</a> · <a href="https://t.me/{{ . }}" rel="noopener">Telegram</a></span></p>{{ end }}
+      <p class="small muted">{{ i18n "contact_langs" }}</p>
+      {{ with site.Params.instagram }}<p class="small"><a href="{{ . }}" rel="noopener">Instagram{{ with site.Params.instagramHandle }} @{{ . }}{{ end }}</a></p>{{ end }}
+      {{ with site.GetPage "author" }}<p class="small"><a href="{{ .RelPermalink }}">{{ .LinkTitle }} →</a></p>{{ end }}
+    </div>
+    <div>
+      <p class="label">{{ i18n "emergency" }}</p>
+      <p class="emergency-line"><strong>112</strong> · 192 · 193 · 194</p>
+      <p class="small muted">{{ i18n "em_legend" }}</p>
+    </div>
+  </div>
+  <div class="wrap footer-base small muted">
+    <span>© {{ now.Year }} {{ i18n "made_by" }} · {{ i18n "license_line" | safeHTML }}</span>
+    <span>© OpenStreetMap contributors · <a href="{{ with site.GetPage "about" }}{{ .RelPermalink }}{{ end }}#photo-credits">{{ i18n "photo_credits" }}</a>{{ if site.Params.gaID }} · <a href="#" data-consent-open hidden>{{ i18n "consent_settings" }}</a>{{ end }}</span>
+  </div>
+</footer>

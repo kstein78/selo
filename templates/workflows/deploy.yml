@@ -1,0 +1,80 @@
+name: Build and deploy
+
+# Site of the selo network (engine: github.com/kstein78/selo as a submodule in themes/selo).
+# Every push to main: build + SEO check, then a preview on GitHub Pages (marked noindex).
+# One-time: repository Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+# Later the Hetzner server serves the real domain (see the engine README).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  HUGO_VERSION: 0.139.4
+  PAGEFIND_VERSION: 1.5.2
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+          fetch-depth: 0
+      - name: Install Hugo (extended)
+        run: |
+          wget -q -O hugo.deb "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
+          sudo dpkg -i hugo.deb
+      - name: Serbian Cyrillic from the Latin text
+        run: python3 themes/selo/scripts/sr_cyrl.py
+      - name: Build site
+        run: hugo --gc --minify
+      - name: SEO check
+        run: python3 themes/selo/scripts/seo_check.py public
+
+  pages:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+          fetch-depth: 0
+      - name: Install Hugo (extended)
+        run: |
+          wget -q -O hugo.deb "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
+          sudo dpkg -i hugo.deb
+      - id: pages
+        uses: actions/configure-pages@v6
+      - name: Serbian Cyrillic from the Latin text
+        run: python3 themes/selo/scripts/sr_cyrl.py
+      - name: Build preview
+        env:
+          HUGO_PARAMS_NOINDEX: "true"
+          HUGO_PARAMS_SHOWTODOS: "true"
+          HUGO_PARAMS_SHOWPHOTOBADGES: "true"
+        run: |
+          hugo --gc --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
+          cp public/sr/404.html public/404.html || true
+          npx -y "pagefind@${PAGEFIND_VERSION}" --site public --quiet
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: public
+      - id: deployment
+        uses: actions/deploy-pages@v5

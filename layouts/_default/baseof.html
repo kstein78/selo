@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="{{ site.Language.LanguageCode | default site.Language.Lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  {{ partial "seo.html" . }}
+  <meta name="theme-color" content="{{ site.Params.themeColor | default "#1f3a2e" }}">
+  <meta name="format-detection" content="telephone=no, address=no, date=no">
+  <link rel="icon" href="{{ "favicon.ico" | relURL }}" sizes="48x48">
+  <link rel="icon" href="{{ "favicon.svg" | relURL }}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="{{ "apple-touch-icon.png" | relURL }}">
+  <link rel="manifest" href="{{ "site.webmanifest" | relURL }}">
+  <link rel="preload" href="{{ "fonts/RakovacCapitalColor-Regular.woff2?v=3" | relURL }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ "fonts/rakovac-common-latin-400-normal.woff2" | relURL }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ "fonts/rakovac-common-latin-300-normal.woff2?v=3" | relURL }}" as="font" type="font/woff2" crossorigin>
+  {{/* Engine stylesheet + the site's own colours and additions (assets/css/site.css in the site repo, optional). */}}
+  {{ $parts := slice (resources.Get "css/main.css") }}{{ with resources.Get "css/site.css" }}{{ $parts = $parts | append . }}{{ end }}
+  {{ $css := $parts | resources.Concat "css/bundle.css" | minify | fingerprint }}
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+  {{ $needsMap := or .Params.coords .Params.map .IsHome (in (slice "map" "useful") .Section) }}
+  {{ if $needsMap }}
+  <link rel="stylesheet" href="{{ "vendor/leaflet/leaflet.css" | relURL }}">
+  {{ end }}
+  {{/* Feeds: the whole site and, on news pages, the news section (Google "Follow", feed readers, autoposting). */}}
+  {{ with site.Home.OutputFormats.Get "rss" }}<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ i18n "brand_name" }}">{{ end }}
+  {{ with site.GetPage "news" }}{{ $news := . }}{{ with .OutputFormats.Get "rss" }}<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ i18n "brand_name" }} · {{ $news.LinkTitle }}">{{ end }}{{ end }}
+  {{ partial "jsonld.html" . }}
+</head>
+<body class="section-{{ .Section | default "home" }}{{ if eq .Section "kids" }} is-kids{{ end }}">
+  <a class="skip" href="#main">{{ i18n "skip" }}</a>
+  {{ partial "header.html" . }}
+  <main id="main"{{ if not (or (eq .Kind "404") (eq .Section "search")) }} data-pagefind-body{{ end }}>
+    {{ block "main" . }}{{ end }}
+    {{ if not (or .IsHome (eq .Kind "404") (eq .Section "search")) }}{{ partial "share.html" . }}{{ end }}
+  </main>
+  {{ partial "footer.html" . }}
+  {{ partial "analytics.html" . }}
+  {{ $js := resources.Get "js/site.js" | minify | fingerprint }}
+  <script src="{{ $js.RelPermalink }}" defer></script>
+  {{ if $needsMap }}
+  <script src="{{ "vendor/leaflet/leaflet.js" | relURL }}" defer></script>
+  {{ $mjs := resources.Get "js/map.js" | minify | fingerprint }}
+  <script src="{{ $mjs.RelPermalink }}" defer></script>
+  {{ end }}
+</body>
+</html>
