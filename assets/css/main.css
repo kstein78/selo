@@ -725,3 +725,6 @@ a[href^="tel:"] { white-space: nowrap; }
 .sister-card b { display: block; font-weight: 600; }
 .sister-card span { font-size: var(--step--1); color: var(--muted); }
 .photo-missing.hero .photo-frame { aspect-ratio: 21/9; }
+
+/* Wide tables in text scroll sideways on phones instead of widening the page. */
+@media (max-width: 700px) { .prose table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; } .prose th, .prose td { min-width: 7rem; } }
