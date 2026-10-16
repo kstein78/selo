@@ -74,6 +74,8 @@ def photos():
         src = os.path.join(ROOT, 'static', p['src'])
         w0 = Image.open(src).width
         for name, size in DISCOVER.items():
+            if name not in SHARE.get('discover', list(DISCOVER)):
+                continue
             if w0 < 1200:
                 break  # too small for Discover: better no image than an upscaled one
             d = os.path.join(ROOT, 'static', 'img', 'discover', name)
