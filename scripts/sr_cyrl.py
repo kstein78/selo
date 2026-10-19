@@ -214,7 +214,7 @@ def main():
             continue
         k, raw = m.groups()
         v = yaml.safe_load(raw) if raw else ''
-        v = tr_markup(str(v)) if k not in ('brand_name',) else 'Раковац'
+        v = tr_text(str(v)) if k == 'brand_name' else tr_markup(str(v))  # the site's own name, always in Cyrillic
         out.append(f'{k}: ' + quote(v))
     write(os.path.join(ROOT, 'i18n', 'cyr.yaml'), '\n'.join(out) + '\n', changed)
 

@@ -1,4 +1,4 @@
-{{/* "Do you have old photos of Rakovac?" box: on the People and History pages (lists and single pages);
+{{/* "Do you have old photos of <place>?" box (texts in the site's i18n: pc_*, gal_call_*): on the People and History pages (lists and single pages);
   on the gallery page the same box asks for present-day photos (gal_call_* texts, no home-visit line).
   Channels: e-mail, WhatsApp, Viber, Telegram (site params), plus a home visit to scan the originals. */}}
 {{ if in (slice "people" "history" "gallery") .Section }}
@@ -11,11 +11,11 @@
     <p>{{ i18n (cond $g "gal_call_text" "pc_text") }}</p>
     <p class="photo-call-actions">
       <a class="btn" href="mailto:{{ $p.contactEmail }}?subject={{ i18n (cond $g "gal_mail_subject" "pc_mail_subject") | urlquery }}">{{ i18n "pc_email" }}</a>
-      <a class="btn btn-quiet" href="https://wa.me/{{ $num }}" rel="noopener">WhatsApp</a>
+      {{ with $p.contactPhone }}<a class="btn btn-quiet" href="https://wa.me/{{ $num }}" rel="noopener">WhatsApp</a>
       <a class="btn btn-quiet" href="viber://chat?number=%2B{{ $num }}">Viber</a>
-      <a class="btn btn-quiet" href="https://t.me/{{ $p.contactPhone }}" rel="noopener">Telegram</a>
+      <a class="btn btn-quiet" href="https://t.me/{{ . }}" rel="noopener">Telegram</a>{{ end }}
     </p>
-    {{ if not $g }}<p>{{ i18n "pc_visit" }} <a href="tel:{{ $p.contactPhone }}">{{ $p.contactPhoneDisplay }}</a></p>{{ end }}
+    {{ if and (not $g) $p.contactPhone }}<p>{{ i18n "pc_visit" }} <a href="tel:{{ $p.contactPhone }}">{{ $p.contactPhoneDisplay }}</a></p>{{ end }}
     <p class="small muted">{{ i18n "pc_consent" }}{{ with site.GetPage "history/photos" }}{{ if ne .RelPermalink $.RelPermalink }} <a href="{{ .RelPermalink }}">{{ i18n "pc_archive_link" }} →</a>{{ end }}{{ end }}</p>
   </aside>
 </div>
