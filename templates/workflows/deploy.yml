@@ -1,9 +1,8 @@
 name: Build and deploy
 
 # Site of the selo network (engine: github.com/kstein78/selo as a submodule in themes/selo).
-# Every push to main: build + SEO check, then a preview on GitHub Pages (marked noindex).
-# One-time: repository Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
-# Later the Hetzner server serves the real domain (see the engine README).
+# Every push to main: build + SEO check here; the Hetzner server (engine: hosting/) builds and serves
+# the real domain by itself within a minute, and the "live" job checks that it did.
 
 on:
   push:
@@ -41,40 +40,34 @@ jobs:
       - name: SEO check
         run: python3 themes/selo/scripts/seo_check.py public
 
-  pages:
+  # The live site is served by the shared Hetzner server (engine: hosting/). It checks GitHub every
+  # minute and rebuilds by itself; this job only confirms that ${{ vars.DOMAIN }} serves this commit.
+  # Until the domain points at the server it just notes that and passes.
+  live:
+    needs: build
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
         with:
-          submodules: true
           fetch-depth: 0
-      - name: Install Hugo (extended)
+      - name: Wait until ${{ vars.DOMAIN }} serves this commit
         run: |
-          wget -q -O hugo.deb "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
-          sudo dpkg -i hugo.deb
-      - id: pages
-        uses: actions/configure-pages@v6
-      - name: Serbian Cyrillic from the Latin text
-        run: python3 themes/selo/scripts/sr_cyrl.py
-      - name: Build preview
-        env:
-          HUGO_PARAMS_NOINDEX: "true"
-          HUGO_PARAMS_SHOWTODOS: "true"
-          HUGO_PARAMS_SHOWPHOTOBADGES: "true"
-        run: |
-          hugo --gc --minify --baseURL "${{ steps.pages.outputs.base_url }}/"
-          cp public/sr/404.html public/404.html || true
-          npx -y "pagefind@${PAGEFIND_VERSION}" --site public --quiet
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: public
-      - id: deployment
-        uses: actions/deploy-pages@v5
+          url=https://${{ vars.DOMAIN }}/version.txt
+          get() { curl -fsS --max-time 15 "$url?t=$(date +%s%N)" 2>/dev/null | head -1 || true; }
+          live=$(get)
+          if ! printf '%s' "$live" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "::notice::${{ vars.DOMAIN }} does not serve version.txt yet (DNS or server not ready). Nothing to check."
+            exit 0
+          fi
+          for i in $(seq 1 40); do
+            git fetch -q origin main
+            if git merge-base --is-ancestor "$GITHUB_SHA" "$live" 2>/dev/null; then
+              echo "${{ vars.DOMAIN }} is live with $live (includes $GITHUB_SHA)"
+              exit 0
+            fi
+            sleep 15
+            live=$(get)
+          done
+          echo "::error::after 10 minutes ${{ vars.DOMAIN }} still serves $live, not $GITHUB_SHA. On the server: journalctl -u selo-update"
+          exit 1
