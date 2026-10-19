@@ -13,6 +13,8 @@
 #      through its local admin API; if Caddy refuses the new config, the old one is put back
 # The repos are public: no keys, tokens or passwords anywhere.
 set -uo pipefail
+# runs only as the deploy user (an older version was meant for root: such a leftover timer now does nothing)
+[ "$(id -u)" = 0 ] && { echo "selo-update runs as the deploy user now, not root: nothing to do"; exit 0; }
 BASE=${SELO_BASE:-$HOME/selo}
 ENGINE_URL=${SELO_ENGINE:-https://github.com/kstein78/selo.git}
 export SELO_BIN=${SELO_BIN:-$HOME/bin}
