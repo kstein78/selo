@@ -1,69 +1,82 @@
 #!/bin/bash
-# Keeps every site in hosting/sites.conf live on this server. Runs every minute (selo-update.timer);
-# logs: journalctl -u selo-update
-#   1. pulls the engine (github.com/kstein78/selo) into /srv/selo/engine
+# Keeps every site in hosting/sites.conf live on the rakovac.rs server. Runs as the "deploy" user
+# (the same user that builds rakovac.rs; no root needed), started:
+#   - by rakovac.rs's deploy/build.sh after every rakovac.rs release (this also bootstraps everything), and
+#   - every minute from the deploy user's crontab, which this script installs itself.
+# Log: /srv/rakovac/selo/update.log
+#   1. pulls the engine (github.com/kstein78/selo) into $BASE/engine
 #   2. for every site: if its main branch has a new commit, checks it out with the engine submodule,
 #      builds it (hosting/build.sh) and switches it live; a failed build keeps the previous version
 #      and is not retried until the next commit
-#   3. writes each site's Caddy config to /etc/caddy/sites/<name>.caddy (made from the site's
-#      hugo.toml by hosting/caddy_site.py) and reloads Caddy only if the whole config validates
-# The repos are public: the server needs no keys, tokens or passwords.
+#   3. writes each site's Caddy config to $BASE/caddy/<name>.caddy (made from the site's hugo.toml by
+#      hosting/caddy_site.py; rakovac.rs's Caddyfile imports that folder) and asks Caddy to reload
+#      through its local admin API; if Caddy refuses the new config, the old one is put back
+# The repos are public: no keys, tokens or passwords anywhere.
 set -uo pipefail
-BASE=/srv/selo
+BASE=${SELO_BASE:-$HOME/selo}
 ENGINE_URL=${SELO_ENGINE:-https://github.com/kstein78/selo.git}
-CADDY_SITES=/etc/caddy/sites
-as_deploy() { runuser -u deploy -- env HOME="$BASE" SELO_BIN="$BASE/bin" "$@"; }
-cd "$BASE" || exit 1
+export SELO_BIN=${SELO_BIN:-$HOME/bin}
+mkdir -p "$BASE/sites" "$BASE/caddy" "$SELO_BIN"
+exec 9>"$BASE/.lock"; flock -n 9 || exit 0          # one run at a time
+log=$BASE/update.log
+[ -f "$log" ] && [ "$(stat -c %s "$log")" -gt 1000000 ] && tail -n 2000 "$log" > "$log.tmp" && mv "$log.tmp" "$log"
+exec >>"$log" 2>&1
+stamp() { date '+%F %T'; }
 
-[ -d engine/.git ] || as_deploy git clone -q "$ENGINE_URL" engine
-as_deploy git -C engine fetch -q origin main && as_deploy git -C engine reset -q --hard FETCH_HEAD
+if [ -d "$BASE/engine/.git" ]; then
+  git -C "$BASE/engine" fetch -q origin main && git -C "$BASE/engine" reset -q --hard FETCH_HEAD
+else
+  git clone -q "$ENGINE_URL" "$BASE/engine" || { echo "$(stamp) engine clone failed"; exit 0; }
+fi
 H=$BASE/engine/hosting
 
-# the updater updates itself (takes effect on the next run)
-cmp -s "$H/selo-update" /usr/local/sbin/selo-update || install -m 755 "$H/selo-update" /usr/local/sbin/selo-update
+# every minute from cron (installed once; only touches our own line)
+if command -v crontab >/dev/null; then
+  line="* * * * * bash $H/selo-update"
+  if ! crontab -l 2>/dev/null | grep -qF "$H/selo-update"; then
+    { crontab -l 2>/dev/null; echo "$line"; } | crontab - && echo "$(stamp) cron entry installed"
+  fi
+fi
 
-mkdir -p "$CADDY_SITES"
 changed=()
 while read -r name repo _; do
   [[ -z "${name:-}" || "$name" == \#* ]] && continue
-  d=$BASE/sites/$name
-  [ -d "$d" ] || install -d -o deploy -g deploy -m 755 "$d"
-  [ -d "$d/repo/.git" ] || as_deploy git clone -q "$repo" "$d/repo" || { echo "$name: clone failed" >&2; continue; }
-  as_deploy git -C "$d/repo" fetch -q origin main || { echo "$name: fetch failed" >&2; continue; }
-  new=$(as_deploy git -C "$d/repo" rev-parse FETCH_HEAD)
+  d=$BASE/sites/$name; mkdir -p "$d"
+  [ -d "$d/repo/.git" ] || git clone -q "$repo" "$d/repo" || { echo "$(stamp) $name: clone failed"; continue; }
+  git -C "$d/repo" fetch -q origin main || { echo "$(stamp) $name: fetch failed"; continue; }
+  new=$(git -C "$d/repo" rev-parse FETCH_HEAD)
   if [ "$new" != "$(cat "$d/deployed" 2>/dev/null)" ] && [ "$new" != "$(cat "$d/failed" 2>/dev/null)" ]; then
-    as_deploy git -C "$d/repo" reset -q --hard "$new"
-    as_deploy git -C "$d/repo" clean -qffd
-    as_deploy git -C "$d/repo" submodule sync -q
-    if as_deploy git -C "$d/repo" submodule update -q --init --recursive && as_deploy bash "$H/build.sh" "$d" "$new"; then
+    echo "$(stamp) $name: building $new"
+    git -C "$d/repo" reset -q --hard "$new"
+    git -C "$d/repo" clean -qffd
+    git -C "$d/repo" submodule sync -q
+    if git -C "$d/repo" submodule update -q --init --recursive && bash "$H/build.sh" "$d" "$new"; then
       echo "$new" > "$d/deployed"; rm -f "$d/failed"
     else
-      echo "$new" > "$d/failed"; echo "$name: build of $new failed, the previous version stays live" >&2
+      echo "$new" > "$d/failed"; echo "$(stamp) $name: build of $new failed, the previous version stays live"
     fi
   fi
-  # web server config for this site (only once something is live)
   [ -e "$d/current" ] || continue
   if python3 "$H/caddy_site.py" "$d/repo" "$d/current" > "$d/site.caddy.new" 2>"$d/caddy.err"; then
-    if ! cmp -s "$d/site.caddy.new" "$CADDY_SITES/$name.caddy"; then
-      [ -f "$CADDY_SITES/$name.caddy" ] && cp "$CADDY_SITES/$name.caddy" "$d/site.caddy.old" || rm -f "$d/site.caddy.old"
-      install -m 644 "$d/site.caddy.new" "$CADDY_SITES/$name.caddy"
+    if ! cmp -s "$d/site.caddy.new" "$BASE/caddy/$name.caddy"; then
+      if [ -f "$BASE/caddy/$name.caddy" ]; then cp "$BASE/caddy/$name.caddy" "$d/site.caddy.old"; else rm -f "$d/site.caddy.old"; fi
+      cp "$d/site.caddy.new" "$BASE/caddy/$name.caddy"
       changed+=("$name")
     fi
   else
-    echo "$name: could not make the Caddy config: $(cat "$d/caddy.err")" >&2
+    echo "$(stamp) $name: could not make the Caddy config: $(cat "$d/caddy.err")"
   fi
 done < "$H/sites.conf"
 
 if [ ${#changed[@]} -gt 0 ]; then
-  if caddy validate --adapter caddyfile --config /etc/caddy/Caddyfile >/dev/null 2>&1; then
-    systemctl reload caddy && echo "Caddy reloaded for: ${changed[*]}"
+  if caddy reload --adapter caddyfile --config /etc/caddy/Caddyfile >/dev/null 2>"$BASE/reload.err"; then
+    echo "$(stamp) Caddy reloaded for: ${changed[*]}"
   else
-    for name in "${changed[@]}"; do   # put the previous config back
+    for name in "${changed[@]}"; do
       d=$BASE/sites/$name
-      if [ -f "$d/site.caddy.old" ]; then cp "$d/site.caddy.old" "$CADDY_SITES/$name.caddy"; else rm -f "$CADDY_SITES/$name.caddy"; fi
+      if [ -f "$d/site.caddy.old" ]; then cp "$d/site.caddy.old" "$BASE/caddy/$name.caddy"; else rm -f "$BASE/caddy/$name.caddy"; fi
     done
-    echo "the new Caddy config for ${changed[*]} is not valid, the old one stays:" >&2
-    caddy validate --adapter caddyfile --config /etc/caddy/Caddyfile 2>&1 | tail -5 >&2
+    echo "$(stamp) Caddy did not accept the config for ${changed[*]}, the old one stays: $(tail -3 "$BASE/reload.err")"
   fi
 fi
 exit 0
