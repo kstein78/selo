@@ -644,6 +644,8 @@ a[href^="tel:"] { white-space: nowrap; }
 .nw { white-space: nowrap; }
 .gallery-inline { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); padding-block: .5rem 1.5rem; }
 .gallery-inline .photo { margin: 0; }
+.gallery-tall { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.gallery-tall .photo-frame { aspect-ratio: 3 / 4; }
 
 /* News */
 .nmeta { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; font-size: .8rem; color: var(--muted); margin: 0 0 .35rem; }

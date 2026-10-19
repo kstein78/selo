@@ -1,2 +1,3 @@
-{{/* A small grid of photos inside the text: {{< photos "key-1 key-2 key-3" >}} (keys from data/photos.yaml). */}}
-<div class="gallery gallery-inline">{{ range split (.Get 0) " " }}{{ with . }}{{ partial "photo.html" (dict "key" .) }}{{ end }}{{ end }}</div>
+{{/* A small grid of photos inside the text: {{< photos "key-1 key-2 key-3" >}} (keys from data/photos.yaml).
+  Second argument "tall" for upright phone photos: frames 3:4 instead of 3:2, so less of the picture is cut away. */}}
+<div class="gallery gallery-inline{{ with .Get 1 }} gallery-{{ . }}{{ end }}">{{ range split (.Get 0) " " }}{{ with . }}{{ partial "photo.html" (dict "key" .) }}{{ end }}{{ end }}</div>
