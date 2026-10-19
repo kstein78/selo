@@ -45,6 +45,14 @@ if [ -n "$pfver" ]; then
   fi
 fi
 
+# The network list (data/network.yaml + emblems) always from the newest engine, not the site's pinned copy:
+# a new site of the network then shows up everywhere without touching the site repos.
+if [ -n "${SELO_ENGINE_DIR:-}" ] && [ -f "$SELO_ENGINE_DIR/data/network.yaml" ]; then
+  mkdir -p data static/img/network
+  cp "$SELO_ENGINE_DIR/data/network.yaml" data/network.yaml
+  cp "$SELO_ENGINE_DIR"/static/img/network/*.svg static/img/network/ 2>/dev/null || true
+fi
+
 out=$rel/$sha
 rm -rf "$out"
 "$hugo" --quiet --gc --minify --destination "$out"

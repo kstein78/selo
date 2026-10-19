@@ -31,6 +31,9 @@ else
   git clone -q "$ENGINE_URL" "$BASE/engine" || { echo "$(stamp) engine clone failed"; exit 0; }
 fi
 H=$BASE/engine/hosting
+export SELO_ENGINE_DIR=$BASE/engine
+# a change of the network list (data/network.yaml or an emblem) rebuilds every site
+net=$(cat "$BASE/engine/data/network.yaml" "$BASE"/engine/static/img/network/*.svg 2>/dev/null | sha256sum | cut -c1-12)
 
 # every minute from cron (installed once; only touches our own line)
 if command -v crontab >/dev/null; then
@@ -40,22 +43,29 @@ if command -v crontab >/dev/null; then
   fi
 fi
 
+# rakovac.rs (own repo, built by root's rakovac-update) also takes the network list from this engine
+# (its deploy/build.sh copies it): when the list changes, ask for a rebuild by removing its "deployed" marker.
+if [ "$HOME" = /srv/rakovac ] && [ -f /srv/rakovac/deployed ] && [ "$net" != "$(cat "$BASE/rakovac-net" 2>/dev/null)" ]; then
+  rm -f /srv/rakovac/deployed && echo "$net" > "$BASE/rakovac-net" && echo "$(stamp) network list $net: rakovac.rs will rebuild"
+fi
+
 changed=()
 while read -r name repo _; do
   [[ -z "${name:-}" || "$name" == \#* ]] && continue
   d=$BASE/sites/$name; mkdir -p "$d"
   [ -d "$d/repo/.git" ] || git clone -q "$repo" "$d/repo" || { echo "$(stamp) $name: clone failed"; continue; }
   git -C "$d/repo" fetch -q origin main || { echo "$(stamp) $name: fetch failed"; continue; }
-  new=$(git -C "$d/repo" rev-parse FETCH_HEAD)
+  sha=$(git -C "$d/repo" rev-parse FETCH_HEAD)
+  new="$sha $net"
   if [ "$new" != "$(cat "$d/deployed" 2>/dev/null)" ] && [ "$new" != "$(cat "$d/failed" 2>/dev/null)" ]; then
-    echo "$(stamp) $name: building $new"
-    git -C "$d/repo" reset -q --hard "$new"
+    echo "$(stamp) $name: building $sha (network $net)"
+    git -C "$d/repo" reset -q --hard "$sha"
     git -C "$d/repo" clean -qffd
     git -C "$d/repo" submodule sync -q
-    if git -C "$d/repo" submodule update -q --init --recursive && bash "$H/build.sh" "$d" "$new"; then
+    if git -C "$d/repo" submodule update -q --init --recursive && bash "$H/build.sh" "$d" "$sha"; then
       echo "$new" > "$d/deployed"; rm -f "$d/failed"
     else
-      echo "$new" > "$d/failed"; echo "$(stamp) $name: build of $new failed, the previous version stays live"
+      echo "$new" > "$d/failed"; echo "$(stamp) $name: build of $sha failed, the previous version stays live"
     fi
   fi
   [ -e "$d/current" ] || continue
