@@ -80,6 +80,12 @@ while read -r name repo _; do
   fi
 done < "$H/sites.conf"
 
+# Selo Admin (admin/, the editors' admin for all sites, behind Caddy at https://rakovac.rs/admin/): keep it running;
+# restarts it after a reboot or when a new engine version changed its code. Data: $BASE/admin-data (never in Git).
+if [ -f "$BASE/engine/admin/keepalive.sh" ]; then
+  SELO_ADMIN_DATA=$BASE/admin-data timeout 60 bash "$BASE/engine/admin/keepalive.sh" 9>&- || echo "$(stamp) admin keepalive failed"
+fi
+
 if [ ${#changed[@]} -gt 0 ]; then
   if caddy reload --adapter caddyfile --config /etc/caddy/Caddyfile >/dev/null 2>"$BASE/reload.err"; then
     echo "$(stamp) Caddy reloaded for: ${changed[*]}"

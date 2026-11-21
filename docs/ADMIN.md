@@ -1,6 +1,6 @@
 # News admin and social posting: architecture
 
-Status: design + foundations in place (October 2026). Nothing here runs yet; this is the plan the engine is built for.
+Status: the web admin runs (November 2026, `admin/`); the Telegram bot and social posting are still plans.
 
 ## Principle: Git stays the source of truth
 
@@ -46,11 +46,13 @@ One bot for the whole network; each editor is allowed only on their own sites.
   takeover of an editor's Telegram account (two-step verification required for editors); a wrong post (preview +
   undo; the site build only publishes what is in Git).
 
-## Web admin (phase 2, optional)
+## Web admin: Selo Admin (since November 2026)
 
-A Git-based CMS (Decap CMS or its successor Sveltia CMS) at `/admin/` on each site, signing in with GitHub: only
-collaborators of the repository can edit, and every save is a commit. Good for longer articles and photo galleries;
-the bot stays the fastest way for short news from a phone.
+A server-side admin for all sites at https://rakovac.rs/admin/ (folder `admin/`, see `admin/README.md`): login with
+password + authenticator code, roles per site (administrator, editor, author with a review queue, viewer) and single
+rights on top (for example, delete only for some), pages and news in every language, hide/delete, the order of news on
+the home page (`pin:`), photos with crop and licence, a log with one-click undo. Every save is a commit in the editor's
+name, so this file's principle holds: Git stays the source of truth.
 
 ## Social posting (phase 3)
 
